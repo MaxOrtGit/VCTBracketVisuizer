@@ -1,3 +1,5 @@
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -10,6 +12,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 ///valorant/api.php?action=query&format=json&prop=revisions&pageids= osajofkljaklsfjkasfjlkasjklasfjklasf &rvprop=content&rvdir=older
 
@@ -57,6 +60,7 @@ public class DownloadAPI {
 
         if(!useBackup) {
 
+            //get all the pages
             JSONObject query = (JSONObject) GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&list=categorymembers&cmpageid=810&cmlimit=max&cmstartsortkeyprefix=VALORANT%20Champions%20Tour&cmendsortkeyprefix=VALORANT%20Circuito%20de%20Elite%2F2021%2FRound%201").get("query");
             JSONArray categorymembers = new JSONArray();
             categorymembers = (JSONArray) query.get("categorymembers");
@@ -105,6 +109,10 @@ public class DownloadAPI {
             //JSONTexts.add(GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions&pageids=" + IDSites.get(0) +"&rvprop=content&rvsection=5&rvdir=older"));
             //TimeUnit.SECONDS.sleep(2);
             //JSONTexts.add(GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions&pageids=" + IDSites.get(1) +"&rvprop=content&rvsection=5&rvdir=older"));
+
+
+
+            //get the section and images
             System.out.println("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + IDSites.get(0) + "&rvprop=content&rvsection=5&rvdir=older&imlimit=max");
 
 
@@ -382,7 +390,7 @@ public class DownloadAPI {
         ArrayList<Match> cMatches = new ArrayList<Match>();
 
         for (Match match:matches) {
-            if(match.region.equals("North America") && match.stage.equals("Stage 1")){
+            if(match.region.equals("North America") && match.stage.equals("Stage 1") && !match.openQualifier){
                 cMatches.add(match);
             }
         }
@@ -396,14 +404,7 @@ public class DownloadAPI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(2000, 1500);
         frame.setVisible(true);
-
-
-
-
-
-
     }
-
 
 
 

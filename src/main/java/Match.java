@@ -100,6 +100,19 @@ public class Match {
         return start;
     }
 
+
+    public String Shortened() {
+        String start = region;
+        if(!subRegion.equals("")){
+            start += ", " + subRegion;
+        }
+        start += " " + stage + " " + challenger;
+        if(openQualifier){
+            start += " Open Qualifier";
+        }
+        return start;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

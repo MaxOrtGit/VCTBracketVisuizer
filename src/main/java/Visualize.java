@@ -1,14 +1,18 @@
 
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
-import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxCellRenderer;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxStylesheet;
 import org.davidmoten.text.utils.WordWrap;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -29,6 +33,7 @@ public class Visualize extends JFrame
         int TFontSize = 12;
 
         int cellSize = 75;
+        int cellSpacing = 30;
         int vCellSpace = 35;
         int hCellSpace = 20;
 
@@ -72,19 +77,40 @@ public class Visualize extends JFrame
                 int rows = (int) (0.708 * Math.pow(totalTeams, 0.5));
 
                 if (rows != 0) {
-                    String matchName = matches.get(i).GetName();
+                    String matchName = matches.get(i).Shortened();
 
                     int cellLength = (cellSize + hCellSpace) * (totalTeams / rows);
-                    String matchWrapped = WordWrap.from(matchName).maxWidth(cellLength / (MFontSize/2.15)).insertHyphens(true).wrap();
+                    String matchWrapped = WordWrap.from(matchName).maxWidth(cellLength / (MFontSize/2.075)).insertHyphens(true).wrap();
 
-                    int titleSize = 10 + (MFontSize * countLines(matchWrapped) * 2);
+                    String[] splittedLine = splitLines(matchWrapped);
+
+                    int lowestNext = 4;
+                    for (int l = 1; l < splittedLine.length; l++) {
+                        int untilNext = 0;
+                        for (int s = 0; s < splittedLine[l].length(); s++) {
+                            if(splittedLine[l].charAt(s) == ' '){
+                                untilNext = s;
+                                break;
+                            }
+                        }
+                        if (untilNext < lowestNext){
+                            lowestNext = untilNext;
+                        }
+                    }
+                    if (lowestNext <= 3){
+                        System.out.println(lowestNext);
+                        matchWrapped = WordWrap.from(matchName).maxWidth(cellLength / (MFontSize/1.5)).insertHyphens(true).wrap();
+
+                    }
+
+                    int titleSize = 10 + (MFontSize * splittedLine.length * 2);
                     int cellHeight = titleSize + rows * (vCellSpace + cellSize);
 
 
                     Object base = graph.insertVertex(parent, null, matchWrapped, lengthOver, 50, cellLength, cellHeight, "matchS;spacingTop=" + 5);
 
 
-                    lengthOver += cellLength + cellSize + hCellSpace * 2;
+                    lengthOver += cellLength + cellSpacing;
 
                     for (int j = 0; j < matches.get(i).teams.size(); j++) {
                         String teamName = matches.get(i).teams.get(j).name;
@@ -110,7 +136,20 @@ public class Visualize extends JFrame
 
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
         getContentPane().add(graphComponent);
+
+
+        //print image
+        try {
+            System.out.println("Saving Photo");
+            BufferedImage image = mxCellRenderer.createBufferedImage(graph, null, 1, Color.WHITE, true, null);
+
+            ImageIO.write(image, "png", new File("/Users/Mortman2299/Documents/Images/Image.png"));
+        } catch (Exception exception) {
+            System.out.println("WHY");
+        }
+
     }
+
 
     public static void main(String[] args)
     {
@@ -121,9 +160,8 @@ public class Visualize extends JFrame
     }
 
 
-    private static int countLines(String str){
-        String[] lines = str.split("\r\n|\r|\n");
-        return  lines.length;
+    private static String[] splitLines(String str){
+        return str.split("\r\n|\r|\n");
     }
 
 }
