@@ -7,6 +7,7 @@ import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxStylesheet;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 
@@ -47,11 +48,16 @@ public class test extends JFrame
             Object base = graph.insertVertex(parent, null, "null", 200, 20, 100, 120,"matchS;spacingTop=-47.5");
 
 
-
             Object v1 = graph.insertVertex(base, null, "one", 0, 20, 50, 50,"teamS");
             Object v2 = graph.insertVertex(base, null, "two", 50, 20, 50, 50, "teamS");
             Object v3 = graph.insertVertex(base, null, "three", 0, 70, 50, 50,"teamS");
             Object v4 = graph.insertVertex(base, null, "four", 50, 70, 50, 50,"teamS");
+
+            ArrayList<Object> CTC = new ArrayList<>();
+            CTC.add(v1);
+            graph.toggleCells(false, CTC.toArray());
+            graph.moveCells(CTC.toArray(), 10, 10);
+            graph.toggleCells(true, CTC.toArray());
 
             //graph.insertEdge(parent, null, "Edge", v1, v2);
         }

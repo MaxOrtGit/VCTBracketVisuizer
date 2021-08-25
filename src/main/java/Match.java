@@ -9,8 +9,8 @@ public class Match {
     String region;
     String subRegion;
     String extension;
-    ArrayList<Team> teams;
-    ArrayList<String> fromTXT;
+    ArrayList<Team> teams = new ArrayList<Team>();
+    ArrayList<String> fromTXT = new ArrayList<String>();
     ArrayList<Match> from = new ArrayList<Match>();
 
 
@@ -101,12 +101,15 @@ public class Match {
     }
 
 
-    public String Shortened() {
+    public String Shortened(boolean includeStage) {
         String start = region;
         if(!subRegion.equals("")){
             start += ", " + subRegion;
         }
-        start += " " + stage + " " + challenger;
+        if(includeStage){
+            start += " " + stage;
+        }
+        start += " " + challenger;
         if(openQualifier){
             start += " Open Qualifier";
         }

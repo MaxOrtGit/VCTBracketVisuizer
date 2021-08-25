@@ -33,21 +33,23 @@ as of now
 
 public class DownloadAPI {
 
-    public static ArrayList<Team> teams = new ArrayList<Team>();
-    public static ArrayList<Match> matches = new ArrayList<Match>();
+    public ArrayList<Team> teams = new ArrayList<Team>();
+    public ArrayList<Match> matches = new ArrayList<Match>();
 
-    public static ArrayList<String> allStages = new ArrayList<String>();
-    public static ArrayList<String> allChallengers = new ArrayList<String>();
-    public static ArrayList<String> allRegions = new ArrayList<String>();
-    public static ArrayList<String> allSubRegions = new ArrayList<String>();
+    public ArrayList<String> allStages = new ArrayList<String>();
+    public ArrayList<String> allChallengers = new ArrayList<String>();
+    public ArrayList<String> allRegions = new ArrayList<String>();
+    public ArrayList<String> allSubRegions = new ArrayList<String>();
 
 
 
     public static boolean useBackup = true;
 
-
-
     public static void main(String[] args) throws Exception {
+        new DownloadAPI();
+    }
+
+    public DownloadAPI() throws Exception {
 
 
         int siteCount = 5;
@@ -369,6 +371,8 @@ public class DownloadAPI {
                                 System.out.println(sMatch.solo());
                                 System.out.println(match.from.get(match.from.size()-1).solo());
                             } else {
+                                System.out.println("why "+ sMatch);
+                                System.out.println(searchMap);
                                 match.from.add(sMatch);
                                 same = true;
                             }
@@ -400,10 +404,13 @@ public class DownloadAPI {
             System.out.println();
         }
 
-        Visualize frame = new Visualize(cMatches);
+        //Visualize frame = new Visualize(cMatches);
+        Visualize frame = new Visualize(cMatches.get(3));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(2000, 1500);
         frame.setVisible(true);
+
+        new DebugInput(this);
     }
 
 
@@ -519,7 +526,7 @@ public class DownloadAPI {
 
 
     // only need officaialTitle
-    public static Match matchFromName(String officialTitle, ArrayList<Integer> teamIndexes, ArrayList<Integer> qualifierIndexes, String pageText){
+    public Match matchFromName(String officialTitle, ArrayList<Integer> teamIndexes, ArrayList<Integer> qualifierIndexes, String pageText){
 
 
         ArrayList<Integer> indexOfSlash = indexesOf(officialTitle, "/");
