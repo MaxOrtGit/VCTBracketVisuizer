@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
@@ -23,7 +24,7 @@ import javax.swing.*;
 
 this code is bad
 and inefficient
-but it works
+but it doesn't work
 
 
 as of now
@@ -45,16 +46,15 @@ public class DownloadAPI {
 
     public static boolean useBackup = true;
 
+    public static boolean debug = true;
+    public static int siteCount = 25;
+
     public static void main(String[] args) throws Exception {
         new DownloadAPI();
     }
 
     public DownloadAPI() throws Exception {
 
-
-        int siteCount = 5;
-
-        int less = 1;
 
         ArrayList<JSONObject> JSONTexts = new ArrayList<JSONObject>(); //fill
         ArrayList<String> IDSites = new ArrayList<String>(); //fill
@@ -64,13 +64,14 @@ public class DownloadAPI {
 
             //get all the pages
             JSONObject query = (JSONObject) GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&list=categorymembers&cmpageid=810&cmlimit=max&cmstartsortkeyprefix=VALORANT%20Champions%20Tour&cmendsortkeyprefix=VALORANT%20Circuito%20de%20Elite%2F2021%2FRound%201").get("query");
+            TimeUnit.SECONDS.sleep(2);
             JSONArray categorymembers = new JSONArray();
             categorymembers = (JSONArray) query.get("categorymembers");
             categorymembers.remove(categorymembers.size() - 1);
 
             //can only pull less than 500 pages
             if(categorymembers.size() >= 495){
-                System.out.println(categorymembers.size() + " game pages are full, fix it");
+                System.out.println(categorymembers.size() + " game pages are full, fix it ERROR");
             }
 
             System.out.print("(");
@@ -78,7 +79,7 @@ public class DownloadAPI {
                 JSONObject member = (JSONObject) categorymembers.get(i);
                 String memberName = (String) member.get("title");
 
-                if (!memberName.contains("Game Changers") && memberName.contains("VALORANT Champions Tour")) {
+                if (!memberName.contains("Game Changers") && ! memberName.contains("Circuit Points") && memberName.contains("VALORANT Champions Tour")) {
                     int id = (int) ((long) member.get("pageid"));
                     ids.add(id);
                     System.out.print(id + ", ");
@@ -91,7 +92,27 @@ public class DownloadAPI {
             int IDSite = 0;
             int IDSitecount = 0;
 
-            for (int i = 0; i < ids.size() / less; i++) {
+            int startOffset = 0;
+
+            //manual lol (filter out awards)
+            int[] dumbIds = new int[]{19662, 16713, 16547, 16356, 19757, 16546, 16545};
+            boolean[] removed = new boolean[dumbIds.length];
+            Arrays.fill(removed, false);
+
+            for (int i = 0; i < dumbIds.length; i++) {
+                if(ids.contains(dumbIds[i])){
+                    removed[i] = true;
+                    startOffset++;
+                    ids.remove((Integer) dumbIds[i]);
+                    JSONTexts.add(GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + dumbIds[i] + "&rvprop=content&rvsection="+ 6 + "&rvdir=older&imlimit=max"));
+                    System.out.println("Calculating");
+                    TimeUnit.SECONDS.sleep(2);
+                } else {
+                    System.out.println("error why does " + dumbIds[i] + "not exist");
+                }
+            }
+
+            for (int i = 0; i < ids.size(); i++) {
                 int id = ids.get(i);
                 if (IDSites.size() != IDSite) {
                     IDSites.set(IDSite, IDSites.get(IDSite) + "%7C" + id);
@@ -105,6 +126,13 @@ public class DownloadAPI {
                 }
             }
 
+            for (int i = 0; i < dumbIds.length; i++) {
+                if (removed[i]) {
+                    ids.add(i, dumbIds[i]);
+                    IDSites.add(i, "" + dumbIds[i]);
+                }
+            }
+
             System.out.println(ids.size());
 
             //TimeUnit.SECONDS.sleep(2);
@@ -115,15 +143,18 @@ public class DownloadAPI {
 
 
             //get the section and images
-            System.out.println("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + IDSites.get(0) + "&rvprop=content&rvsection=5&rvdir=older&imlimit=max");
+            System.out.println("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + IDSites.get(3) + "&rvprop=content&rvsection=5&rvdir=older&imlimit=max");
 
 
-            System.out.println(0 + "/" + IDSites.size());
-            for (int i = 0; i < IDSites.size(); i++) {
+            System.out.println(startOffset + "/" + IDSites.size());
+            for (int i = startOffset; i < IDSites.size(); i++) {
                 TimeUnit.SECONDS.sleep(2);
                 System.out.println((i + 1) + "/" + IDSites.size());
-                JSONTexts.add(GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + IDSites.get(i) + "&rvprop=content&rvsection=5&rvdir=older&imlimit=max"));
+                int section = 5;
+                //need to do for 1/5 great :)
+                JSONTexts.add(GetPage("https://liquipedia.net/valorant/api.php?action=query&format=json&prop=revisions%7Cimages&pageids=" + IDSites.get(i) + "&rvprop=content&rvsection="+ section + "&rvdir=older&imlimit=max"));
             }
+
 
 
             serializeDataOut(JSONTexts, "JSONTexts");
@@ -138,19 +169,24 @@ public class DownloadAPI {
         }
 
 
+        //end of backup
 
-
-        int print = 2;
+        int idsIndex = 0;
 
         for (int i = 0; i < IDSites.size(); i++){
             JSONObject sQuery = (JSONObject) JSONTexts.get(i).get("query");
             JSONObject sPages = (JSONObject) sQuery.get("pages");
-            for (int j = 0; j < siteCount; j++) {
-                if((i * 5) + j == ids.size()/less){
-                    break;
-                }
-                JSONObject IDPage = (JSONObject) sPages.get((ids.get((i * 5) + j)).toString());
+
+            int inIDSite = (IDSites.get(i).length() - IDSites.get(i).replaceAll("%7C","").length()) / 3 + 1;
+            System.out.println(inIDSite);
+            for (int j = 0; j < inIDSite; j++) {
+                // no bool output
+                //System.out.println(i + " " + j + "  " + (ids.get(idsIndex)) + " " + sPages + " " + sPages.get((ids.get(idsIndex)).toString()));
+                JSONObject IDPage = (JSONObject) sPages.get((ids.get(idsIndex)).toString());
+                //if(IDSites.get(i).con)
                 JSONObject IDRevisions = (JSONObject) ((JSONArray) IDPage.get("revisions")).get(0);
+
+
                 //System.out.println(IDRevisions);
                 String pageText = (String) IDRevisions.get("*");
 
@@ -162,9 +198,11 @@ public class DownloadAPI {
                 String officialTitle = (String) IDPage.get("title") + "/";
                 //System.out.println(officialTitle);
 
-                Match match = matchFromName(officialTitle, indexes, QIndexes,pageText);
+                Match match = matchFromName(officialTitle, indexes, QIndexes, pageText);
+                System.out.println(officialTitle);
+                System.out.println((ids.get(idsIndex)) + "\n");
                 matches.add(match);
-
+                idsIndex++;
             }
 
         }
@@ -207,6 +245,9 @@ public class DownloadAPI {
                     allChallengers.add(cha);
                 }
             }
+            allChallengers.remove("Challengers");
+            allChallengers.add("Challengers");
+
 
             if (allRegions.size() != 0) {
                 for (String region : allRegions) {
@@ -278,23 +319,30 @@ public class DownloadAPI {
             }
 
             //print from
-            System.out.println("\nnew match\n" + match.extension + "\nfrom start");
+            if(debug) {
+                System.out.println("\nnew match\n" + match.extension + "\nfrom start");
+            }
 
             //find team from fromTXT
             for (int i = 0; i < match.teams.size(); i++) {
                 String froT = match.fromTXT.get(i);
                 //print from
-                System.out.println(froT);
+                if(debug) {
+                    System.out.println(froT);
+                }
 
-                if(froT.equals("Open Qualifiers")) {
+                if(froT.equals("Open Qualifiers") || froT.contains("(High") || froT.contains("(Low") || froT.equals("oup")) {
                     match.from.add(null);
                 } else if(froT.equals("First_Strike/Japan|First Strike Top 4")) {
                     match.fromTXT.set(i, "First Strike");
                     match.from.add(null);
-                } else if(froT.equals("ed into Quarterfina") || froT.equals("vit")) {
+                } else if(froT.equals("ed into Quarterfina")) {
                     match.fromTXT.set(i, "Seeded Into Quarterfinals");
                     match.from.add(null);
                 } else if(froT.equals("vit")) {
+                    match.fromTXT.set(i, "Invited");
+                    match.from.add(null);
+                } else if(froT.contains("Circuit Points")) {
                     match.fromTXT.set(i, "Invited");
                     match.from.add(null);
                 } else if(froT.equals("/Closed Qualifier|Closed Qualifier")) {
@@ -359,7 +407,9 @@ public class DownloadAPI {
                     }
 
                     //print from
-                    System.out.println(newT + "\n");
+                    if(debug) {
+                        System.out.println(newT + " test\n");
+                    }
 
                     Match searchMap = matchFromName(newT, null, null, null);
 
@@ -371,8 +421,6 @@ public class DownloadAPI {
                                 System.out.println(sMatch.solo());
                                 System.out.println(match.from.get(match.from.size()-1).solo());
                             } else {
-                                System.out.println("why "+ sMatch);
-                                System.out.println(searchMap);
                                 match.from.add(sMatch);
                                 same = true;
                             }
@@ -389,8 +437,24 @@ public class DownloadAPI {
         }
 
 
+        for (Match match:matches) {
+            if(!match.stage.equals("3") && match.teams.size() == 0){
+                System.out.println(match.extension);
+            }
+        }
+
         //cull matches
 
+        String startExe = "VALORANT Champions Tour/2021/Stage 2/Masters";
+        //String startExe = "VALORANT Champions Tour/2021/North America/Stage 2/Challengers Finals";
+
+        Match cMatch = null;
+        for (Match match:matches) {
+            if(match.extension.equals(startExe)){
+                cMatch = match;
+            }
+        }
+        /*
         ArrayList<Match> cMatches = new ArrayList<Match>();
 
         for (Match match:matches) {
@@ -404,8 +468,20 @@ public class DownloadAPI {
             System.out.println();
         }
 
-        //Visualize frame = new Visualize(cMatches);
-        Visualize frame = new Visualize(cMatches.get(3));
+         */
+        if(debug) {
+            System.out.println("output");
+            for (Match match : matches) {
+                System.out.println(match.full());
+                System.out.println();
+            }
+        }
+        System.out.println("\nTo bracket");
+        System.out.println(cMatch.full());
+        System.out.println();
+
+        Visualize frame = new Visualize(cMatch);
+        //Visualize frame = new Visualize(cMatches.get(3));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(2000, 1500);
         frame.setVisible(true);
@@ -585,52 +661,6 @@ public class DownloadAPI {
             }
         }
 
-
-
-        /*
-        if(P1.contains("Champions")){
-            region = "World";
-            stage = "Champions";
-            challenger = "";
-        } else if (P1.contains("Stage")) {
-            region = "World";
-            stage = officialTitle.substring(indexOfSlash.get(1) + 7, indexOfSlash.get(2));
-            challenger = "";
-        } else {
-            region = P1;
-
-            String P2 = officialTitle.substring(indexOfSlash.get(2) + 7, indexOfSlash.get(3));
-
-            if(P2.contains("Qualifier")) {
-                stage = "Last Chance Qualifier";
-                challenger = "";
-            } else {
-                stage = P2;
-
-                String P3 = officialTitle.substring(indexOfSlash.get(3) + 1, indexOfSlash.get(4));
-                if(P3.contains("Masters")){
-                    challenger = "Masters";
-                } else if (P3.contains("Final")) {
-                    challenger = "Final";
-                } else if (P3.contains("Preliminary Round")) {
-                    challenger = "Final";
-                } else if (P3.equals("Challengers")) {
-                    challenger = "1";
-                } else if (P3.equals("Vietnam")) {
-                    challenger = "1";
-                    subRegion = "Vietnam";
-                } else {
-                    challenger = officialTitle.substring(indexOfSlash.get(3) + 13, indexOfSlash.get(4));
-                    if(indexOfSlash.size() >= 6){
-                        subRegion = officialTitle.substring(indexOfSlash.get(4) + 1, indexOfSlash.get(5));
-                    }
-                }
-
-            }
-
-        }
-
-         */
 
         if(teamIndexes != null) {
 

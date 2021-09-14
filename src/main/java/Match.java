@@ -75,7 +75,7 @@ public class Match {
         return extension;
     }
     public String full() {
-        String start = "Stage:" + stage + ", Challenger:" + challenger;
+        String start = "Name: " + extension + " Stage:" + stage + ", Challenger:" + challenger;
         if(openQualifier){
             start += " Open Qualifier";
         }

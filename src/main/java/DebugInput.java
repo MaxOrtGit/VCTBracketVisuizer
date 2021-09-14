@@ -9,7 +9,7 @@ class DebugInput {
                 new BufferedReader(new InputStreamReader(System.in));
         String name = reader.readLine();
         for (Match match : parent.matches) {
-            if(match.Shortened(true).equals(name)){
+            if(match.Shortened(true).equals(name) || match.extension.equals(name)){
                 System.out.println(match.full());
             }
         }

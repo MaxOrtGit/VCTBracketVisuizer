@@ -91,6 +91,7 @@ public class Cell {
                 Cell newCell = new Cell(cell, this);
                 cells.add(newCell);
             }
+            cell = base;
         } else {
             System.out.println(match + " has no teams");
         }
@@ -99,8 +100,7 @@ public class Cell {
     //holder
     Cell(Cell holder, mxGraph graph){
         parent = holder;
-        Object base = graph.insertVertex(holder.cell, null, "", 0, 0, 0, 0, "holderS");
-        cell = base;
+        cell = graph.insertVertex(holder.cell, null, "", 0, 0, 0, 0, "holderS");
         type = 2;
     }
 
@@ -113,5 +113,15 @@ public class Cell {
 
     private static String[] splitLines(String str){
         return str.split("\r\n|\r|\n");
+    }
+
+
+    @Override
+    public String toString() {
+        if(match != null){
+            return "Cell " + match.extension;
+        } else {
+            return "Cell " + cell;
+        }
     }
 }

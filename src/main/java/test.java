@@ -2,6 +2,8 @@
 
 import javax.swing.JFrame;
 
+import com.mxgraph.layout.mxFastOrganicLayout;
+import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
@@ -47,19 +49,31 @@ public class test extends JFrame
 
             Object base = graph.insertVertex(parent, null, "null", 200, 20, 100, 120,"matchS;spacingTop=-47.5");
 
+            Object parejnt = graph.getDefaultParent();
 
-            Object v1 = graph.insertVertex(base, null, "one", 0, 20, 50, 50,"teamS");
-            Object v2 = graph.insertVertex(base, null, "two", 50, 20, 50, 50, "teamS");
-            Object v3 = graph.insertVertex(base, null, "three", 0, 70, 50, 50,"teamS");
-            Object v4 = graph.insertVertex(base, null, "four", 50, 70, 50, 50,"teamS");
+            Object v1 = graph.insertVertex(base, null, "one", 12, 23, 50, 50,"teamS");
+            Object v2 = graph.insertVertex(base, null, "two", 64, 23, 50, 50, "teamS");
+            Object v3 = graph.insertVertex(base, null, "three", 2, 64, 50, 50,"teamS");
+            Object v4 = graph.insertVertex(base, null, "four", 23, 64, 50, 50,"teamS");
+
+
+            Object base2 = graph.insertVertex(parent, null, "null", 57, 34, 100, 120,"matchS;spacingTop=-47.5");
+
+
+            Object v21 = graph.insertVertex(base2, null, "one", 78, 14, 50, 50,"teamS");
+            Object v22 = graph.insertVertex(base2, null, "two", 64, 53, 50, 50, "teamS");
+            Object v23 = graph.insertVertex(base2, null, "three", 43, 70, 50, 50,"teamS");
+            Object v24 = graph.insertVertex(base2, null, "four", 12, 23, 50, 50,"teamS");
 
             ArrayList<Object> CTC = new ArrayList<>();
             CTC.add(v1);
             graph.toggleCells(false, CTC.toArray());
-            graph.moveCells(CTC.toArray(), 10, 10);
+            graph.moveCells(CTC.toArray(), 10, 16);
             graph.toggleCells(true, CTC.toArray());
 
-            //graph.insertEdge(parent, null, "Edge", v1, v2);
+            graph.insertEdge(parent, null, "", base, base2);
+            mxIGraphLayout layout = new mxFastOrganicLayout(graph);
+            layout.execute(parejnt);
         }
         finally
         {
