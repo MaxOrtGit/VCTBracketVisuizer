@@ -114,7 +114,7 @@ public class Visualize extends JFrame
 
     public Cell subSection(Match match, Cell path, mxGraph graph, ArrayList<Match> fromsToAdd) {
 
-
+        System.out.println("\n" + match.extension);
         Cell holder = Create(null, path, true, graph);
 
         ArrayList<Cell> cellsInSection = new ArrayList<Cell>();
@@ -130,6 +130,8 @@ public class Visualize extends JFrame
         if(fromsToAdd != null){
             froms.remove(match);
         }
+        System.out.println(froms);
+
         if(froms.size() >= 1) {
             for (int i = 0; i < froms.size(); i++) {
                 if(froms.get(i).stage.equals(match.stage)) {
@@ -140,6 +142,9 @@ public class Visualize extends JFrame
                         allCells.add(cell);
                         //graph.insertEdge(graph.getDefaultParent(), null, "", cellsInSection.get(cellsInSection.size()-1).cell, cellsInSection.get(0).cell);
                         froms = addFroms(froms, getFroms(froms.get(i), false));
+                        if(fromsToAdd != null){
+                            froms.remove(match);
+                        }
                     } else {
                         //create new subsection
                         ArrayList<Match> FTA = new ArrayList<>();
