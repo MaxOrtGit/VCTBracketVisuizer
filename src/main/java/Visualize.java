@@ -27,8 +27,13 @@ import java.util.Random;
 
 public class Visualize extends JFrame
 {
+
+    ArrayList<Cell> allCells = new ArrayList<>();
+
     public Visualize(Match start) {
         super("Road To " + start.Shortened(true));
+
+
 
         String name = "Road To " + start.Shortened(true);
         System.out.println("start point " + name);
@@ -83,7 +88,7 @@ public class Visualize extends JFrame
         Cell startCell;
 
         try {
-            startCell = subSection(start, graphPath, graph);
+            startCell = subSection(start, graphPath, graph, null);
         } finally {
             graph.getModel().endUpdate();
         }
@@ -107,31 +112,45 @@ public class Visualize extends JFrame
         graph.getModel().endUpdate();
     }
 
-    public Cell subSection(Match match, Cell path, mxGraph graph) {
+    public Cell subSection(Match match, Cell path, mxGraph graph, ArrayList<Match> fromsToAdd) {
+
+
         Cell holder = Create(null, path, true, graph);
 
         ArrayList<Cell> cellsInSection = new ArrayList<Cell>();
         cellsInSection.add(Create(match, holder, false, graph));
 
         ArrayList<Match> froms = getFroms(match, false);
+
+        if(fromsToAdd != null){
+            froms = addFroms(froms, fromsToAdd);
+        }
         froms = compressFroms(froms);
+
+        if(fromsToAdd != null){
+            froms.remove(match);
+        }
         if(froms.size() >= 1) {
             for (int i = 0; i < froms.size(); i++) {
                 if(froms.get(i).stage.equals(match.stage)) {
                     if (froms.get(i).region.equals(match.region) && froms.get(i).subRegion.equals(match.subRegion)) {
                         //create normal match
-                        cellsInSection.add(Create(froms.get(i), holder, false, graph));
-                        graph.insertEdge(graph.getDefaultParent(), null, "", cellsInSection.get(cellsInSection.size()-1).cell, cellsInSection.get(0).cell);
-
+                        Cell cell = Create(froms.get(i), holder, false, graph);
+                        cellsInSection.add(cell);
+                        allCells.add(cell);
+                        //graph.insertEdge(graph.getDefaultParent(), null, "", cellsInSection.get(cellsInSection.size()-1).cell, cellsInSection.get(0).cell);
+                        froms = addFroms(froms, getFroms(froms.get(i), false));
                     } else {
                         //create new subsection
-                        cellsInSection.add(subSection(froms.get(i), holder, graph));
+                        ArrayList<Match> FTA = new ArrayList<>();
                         for (int j = i + 1; j < froms.size(); j++) {
                             if (froms.get(j).region.equals(froms.get(i).region) && froms.get(j).subRegion.equals(froms.get(i).subRegion)) {
+                                FTA.add(froms.get(j));
                                 froms.remove(j);
                                 j--;
                             }
                         }
+                        cellsInSection.add(subSection(froms.get(i), holder, graph, FTA));
                     }
                 }
             }
@@ -167,7 +186,7 @@ public class Visualize extends JFrame
                             if(cell.match.challenger.length() == 13 && cell.match.challenger.contains("Challengers")){
                                 if(sCell.match.challenger.length() == 13 && cell.match.challenger.contains("Challengers")){
                                     if(Integer.parseInt(cell.match.challenger.substring(12)) < Integer.parseInt(sCell.match.challenger.substring(12))){
-                                        System.out.println(sCell);
+                                        //System.out.println(sCell);
                                         newOrder.get(0).add(newOrder.get(0).indexOf(sCell), cell);
                                         added = true;
                                         break;
@@ -224,7 +243,7 @@ public class Visualize extends JFrame
                 double width = cellGeo.getWidth();
                 Object[] cellz = new Object[1];
                 cellz[0] = cell.cell;
-                graph.moveCells(cellz, widthOver, 0);
+                graph.moveCells(cellz, widthOver, cellSpacing);
                 widthOver += width + cellSpacing;
                 //System.out.println(widthOver + " " + width);
                 //System.out.println(cell.cell);
@@ -232,7 +251,7 @@ public class Visualize extends JFrame
 
             graph.updateCellSize(parent);
 
-            System.out.println(parent);
+            //System.out.println(parent);
 
             return newOrder;
         } else {
@@ -248,7 +267,7 @@ public class Visualize extends JFrame
                 if(currentOver < cellGeo.getWidth() + cellSpacing) {
                     currentOver = cellGeo.getWidth() + cellSpacing;
                 }
-                System.out.println(currentOver);
+                //System.out.println(currentOver);
                 totalHeightOver += cellGeo.getHeight() + cellSpacing;
             }
             totalWidthOver += currentOver;
@@ -368,7 +387,7 @@ public class Visualize extends JFrame
 
         graph.updateCellSize(parent);
 
-        System.out.println(parent);
+        //System.out.println(parent);
 
         return newOrder;
     }
@@ -381,8 +400,23 @@ public class Visualize extends JFrame
         return froms;
     }
 
+    public ArrayList<Match> addFroms(ArrayList<Match> original, ArrayList<Match> second){
+        ArrayList<Match> froms = original;
+        for (int i = 0; i < second.size(); i++) {
+            boolean safe = true;
+            for (int j = 0; j < original.size(); j++) {
+                if(second.get(i).equals(original.get(j))){
+                    safe = false;
+                }
+            }
+            if(safe){
+                froms.add(second.get(i));
+            }
+        }
+        return froms;
+    }
+
     public ArrayList<Match> compressFroms(ArrayList<Match> array){
-        System.out.println(array + "efjkbfsd");
         ArrayList<Match> newArray = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
             if (newArray.size() != 0) {
@@ -401,7 +435,6 @@ public class Visualize extends JFrame
                 }
             }
         }
-        System.out.println(newArray + "kfsndkfdsn");
         return newArray;
     }
 
@@ -484,7 +517,7 @@ public class Visualize extends JFrame
                         }
                     }
                     if (lowestNext <= 3){
-                        System.out.println(lowestNext);
+                        //System.out.println(lowestNext);
                         matchWrapped = WordWrap.from(matchName).maxWidth(cellLength / (MFontSize/1.5)).insertHyphens(true).wrap();
 
                     }
